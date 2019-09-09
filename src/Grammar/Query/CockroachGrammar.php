@@ -22,51 +22,6 @@ class CockroachGrammar extends PostgresGrammar
     ];
 
     /**
-     * Compile a "where date" clause.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $where
-     * @return string
-     */
-    protected function whereDate(Builder $query, $where)
-    {
-        $value = $this->parameter($where['value']);
-
-        return $this->wrap($where['column']).'::date '.$where['operator'].' '.$value;
-    }
-
-    /**
-     * Compile a date based where clause.
-     *
-     * @param  string  $type
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $where
-     * @return string
-     */
-    protected function dateBasedWhere($type, Builder $query, $where)
-    {
-        $value = $this->parameter($where['value']);
-
-        return 'extract('.$type.' from '.$this->wrap($where['column']).') '.$where['operator'].' '.$value;
-    }
-
-    /**
-     * Compile the lock into SQL.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  bool|string  $value
-     * @return string
-     */
-    protected function compileLock(Builder $query, $value)
-    {
-        if (! is_string($value)) {
-            return $value ? 'for update' : 'for share';
-        }
-
-        return $value;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function compileInsert(Builder $query, array $values)

@@ -45,6 +45,20 @@ Open `config/datbase.php` and, to your "connections" array, add:
 Make sure to update **host**, **port**, **database**, **username**, **password** and **schema** to
 your configuration. Note the **database** and **schema** fields should be the same.
 
+## (Blueprint) primary() method won't work!
+
+Add a primary key after table creation is currently NOT supported [Source](https://forum.cockroachlabs.com/t/primary-key-error-when-running-laravel-migrations/1968/6). So Blueprint method `$table->primary()` wont take any effects. 
+
+In case you want to set a column as primary key, use `addColumn` method instead. For example, if you want to make an UUID column as primary key:
+
+```php
+// Blueprint $table
+$table->addColumn('uuid', 'id', [
+    'primary' => true, // Set this column as primary
+    'gen_random_uuid' => true // Set default value as gen_random_uuid() (https://www.cockroachlabs.com/docs/stable/uuid.html)
+]);
+```
+
 ## Secure Mode
 
 Update **sslcert**, **sslkey** and **sslrootcert** with your path configuration.

@@ -20,7 +20,7 @@ class CockroachGrammar extends PostgresGrammar
      *
      * @var array
      */
-    protected $modifiers = ['Increment', 'Nullable', 'Default', 'Primary'];
+    protected $modifiers = ['Increment', 'Nullable', 'Default', 'Primary', 'Uuid'];
 
     /**
      * The columns available as serials.
@@ -37,30 +37,6 @@ class CockroachGrammar extends PostgresGrammar
     protected $primaryKeyFields = [];
 
     /**
-     * Gets the primary key string for table creation
-     *
-     * @return string|null
-     */
-    protected function getPrimaryKeyFields()
-    {
-        $columns = collect($this->primaryKeyFields);
-
-        // Return null if no column is set as primary key
-        if ($columns->count() == 0) {
-            return null;
-        }
-
-        $columns = $columns
-            ->map(function ($column) {
-                return $this->wrap($column->name);
-            })
-            ->unique()
-            ->implode(',');
-
-        return sprintf(', primary key (%s)', $columns);
-    }
-
-    /**
      * Compile the query to determine if a table exists.
      *
      * @return string
@@ -68,153 +44,6 @@ class CockroachGrammar extends PostgresGrammar
     public function compileTableExists()
     {
         return 'select * from information_schema.tables where table_schema = ? and table_name = ?';
-    }
-
-    /**
-     * Compile the query to determine the list of columns.
-     *
-     * @param  string  $table
-     * @return string
-     */
-    public function compileColumnListing()
-    {
-        return 'select column_name from information_schema.columns where table_schema = ? and table_name = ?';
-    }
-
-    /**
-     * Compile a column addition command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileAdd(Blueprint $blueprint, Fluent $command)
-    {
-        return sprintf('alter table %s %s',
-            $this->wrapTable($blueprint),
-            implode(', ', $this->prefixArray('add column', $this->getColumns($blueprint)))
-        );
-    }
-
-    /**
-     * Compile a primary key command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compilePrimary(Blueprint $blueprint, Fluent $command)
-    {
-        $columns = $this->columnize($command->columns);
-
-        return 'alter table '.$this->wrapTable($blueprint)." add primary key ({$columns})";
-    }
-
-    /**
-     * Compile a unique key command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileUnique(Blueprint $blueprint, Fluent $command)
-    {
-        return sprintf('alter table %s add constraint %s unique (%s)',
-            $this->wrapTable($blueprint),
-            $this->wrap($command->index),
-            $this->columnize($command->columns)
-        );
-    }
-
-    /**
-     * Compile a plain index key command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileIndex(Blueprint $blueprint, Fluent $command)
-    {
-        return sprintf('create index %s on %s%s (%s)',
-            $this->wrap($command->index),
-            $this->wrapTable($blueprint),
-            $command->algorithm ? ' using '.$command->algorithm : '',
-            $this->columnize($command->columns)
-        );
-    }
-
-    /**
-     * Compile a drop table command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileDrop(Blueprint $blueprint, Fluent $command)
-    {
-        return 'drop table '.$this->wrapTable($blueprint);
-    }
-
-    /**
-     * Compile the SQL needed to drop all tables.
-     *
-     * @param  string  $tables
-     * @return string
-     */
-    public function compileDropAllTables($tables)
-    {
-        return 'drop table "'.implode('","', $tables).'" cascade';
-    }
-
-    /**
-     * Compile the SQL needed to retrieve all table names.
-     *
-     * @param  string  $schema
-     * @return string
-     */
-    public function compileGetAllTables($schema)
-    {
-        return "select tablename from pg_catalog.pg_tables where schemaname = '{$schema}'";
-    }
-
-    /**
-     * Compile a drop table (if exists) command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileDropIfExists(Blueprint $blueprint, Fluent $command)
-    {
-        return 'drop table if exists '.$this->wrapTable($blueprint);
-    }
-
-    /**
-     * Compile a drop column command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileDropColumn(Blueprint $blueprint, Fluent $command)
-    {
-        $columns = $this->prefixArray('drop column', $this->wrapArray($command->columns));
-
-        return 'alter table '.$this->wrapTable($blueprint).' '.implode(', ', $columns);
-    }
-
-    /**
-     * Compile a drop primary key command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileDropPrimary(Blueprint $blueprint, Fluent $command)
-    {
-        $index = $this->wrap("{$blueprint->getTable()}_pkey");
-
-        return 'alter table '.$this->wrapTable($blueprint)." drop constraint {$index}";
     }
 
     /**
@@ -232,119 +61,19 @@ class CockroachGrammar extends PostgresGrammar
         return "drop index {$table}@{$index} cascade";
     }
 
-    /**
-     * Compile a drop index command.
+     /**
+     * Compile a primary key command.
      *
      * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
      * @param  \Illuminate\Support\Fluent  $command
      * @return string
      */
-    public function compileDropIndex(Blueprint $blueprint, Fluent $command)
+    public function compilePrimary(Blueprint $blueprint, Fluent $command)
     {
-        return "drop index {$this->wrap($command->index)}";
-    }
-
-    /**
-     * Compile a drop foreign key command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileDropForeign(Blueprint $blueprint, Fluent $command)
-    {
-        $index = $this->wrap($command->index);
-
-        return "alter table {$this->wrapTable($blueprint)} drop constraint {$index}";
-    }
-
-    /**
-     * Compile a rename table command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileRename(Blueprint $blueprint, Fluent $command)
-    {
-        $from = $this->wrapTable($blueprint);
-
-        return "alter table {$from} rename to ".$this->wrapTable($command->to);
-    }
-
-    /**
-     * Compile the command to enable foreign key constraints.
-     *
-     * @return string
-     */
-    public function compileEnableForeignKeyConstraints()
-    {
-        return 'SET CONSTRAINTS ALL IMMEDIATE;';
-    }
-
-    /**
-     * Compile the command to disable foreign key constraints.
-     *
-     * @return string
-     */
-    public function compileDisableForeignKeyConstraints()
-    {
-        return 'SET CONSTRAINTS ALL DEFERRED;';
-    }
-
-    /**
-     * Create the column definition for a char type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeChar(Fluent $column)
-    {
-        return "char({$column->length})";
-    }
-
-    /**
-     * Create the column definition for a string type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeString(Fluent $column)
-    {
-        return "varchar({$column->length})";
-    }
-
-    /*
-     * Create the column definition for a text type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeText(Fluent $column)
-    {
-        return 'text';
-    }
-
-    /**
-     * Create the column definition for a medium text type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeMediumText(Fluent $column)
-    {
-        return 'text';
-    }
-
-    /**
-     * Create the column definition for a long text type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeLongText(Fluent $column)
-    {
-        return 'text';
+        $columns = $this->columnize($command->columns);
+        // Disable this function because currently cockroachDB doesn't support adding primary key after table creation
+        // \Log::info($columns);
+        // return 'alter table '.$this->wrapTable($blueprint)." add primary key ({$columns})";
     }
 
     /**
@@ -403,61 +132,6 @@ class CockroachGrammar extends PostgresGrammar
     }
 
     /**
-     * Create the column definition for a float type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeFloat(Fluent $column)
-    {
-        return $this->typeDouble($column);
-    }
-
-    /**
-     * Create the column definition for a double type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeDouble(Fluent $column)
-    {
-        return 'double precision';
-    }
-
-    /**
-     * Create the column definition for a real type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeReal(Fluent $column)
-    {
-        return 'real';
-    }
-
-    /**
-     * Create the column definition for a decimal type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeDecimal(Fluent $column)
-    {
-        return "decimal({$column->total}, {$column->places})";
-    }
-
-    /**
-     * Create the column definition for a boolean type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeBoolean(Fluent $column)
-    {
-        return 'boolean';
-    }
-
-    /**
      * Create the column definition for an enum type.
      *
      * @param  \Illuminate\Support\Fluent  $column
@@ -470,39 +144,6 @@ class CockroachGrammar extends PostgresGrammar
         }, $column->allowed);
 
         return "varchar(255) check (\"{$column->name}\" in (".implode(', ', $allowed).'))';
-    }
-
-    /**
-     * Create the column definition for a json type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeJson(Fluent $column)
-    {
-        return 'json';
-    }
-
-    /**
-     * Create the column definition for a jsonb type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeJsonb(Fluent $column)
-    {
-        return 'jsonb';
-    }
-
-    /**
-     * Create the column definition for a date type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeDate(Fluent $column)
-    {
-        return 'date';
     }
 
     /**
@@ -580,108 +221,44 @@ class CockroachGrammar extends PostgresGrammar
     }
 
     /**
-     * Create the column definition for a binary type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeBinary(Fluent $column)
-    {
-        return 'bytea';
-    }
-
-    /**
-     * Create the column definition for a uuid type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeUuid(Fluent $column)
-    {
-        return 'uuid';
-    }
-
-    /**
-     * Create the column definition for an IP address type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeIpAddress(Fluent $column)
-    {
-        return 'inet';
-    }
-
-    /**
-     * Create the column definition for a MAC address type.
-     *
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string
-     */
-    protected function typeMacAddress(Fluent $column)
-    {
-        return 'macaddr';
-    }
-
-    /**
-     * Get the SQL for a nullable column modifier.
+     * Get the SQL for an primary column modifier.
      *
      * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
      * @param  \Illuminate\Support\Fluent  $column
      * @return string|null
-     */
-    protected function modifyNullable(Blueprint $blueprint, Fluent $column)
-    {
-        return $column->nullable ? ' null' : ' not null';
-    }
-
-    /**
-     * Get the SQL for a default column modifier.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string|null
-     */
-    protected function modifyDefault(Blueprint $blueprint, Fluent $column)
-    {
-        if (! is_null($column->default)) {
-            return ' default '.$this->getDefaultValue($column->default);
-        }
-    }
-
-    /**
-     * Get the SQL for an auto-increment column modifier.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return string|null
-     */
-    protected function modifyIncrement(Blueprint $blueprint, Fluent $column)
-    {
-        if (in_array($column->type, $this->serials) && $column->autoIncrement) {
-            $this->primaryKeyFields[] = $column;
-        }
-    }
-
-    /**
-     * Get the SQL for an primary key column modifier.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $column
-     * @return null
      */
     protected function modifyPrimary(Blueprint $blueprint, Fluent $column)
     {
-        $primaryCommand = collect($blueprint->getCommands())->first(function ($command) {
-            return $command->name == 'primary';
-        });
+        $modify = '';
 
-        if (!$primaryCommand) {
-            return null;
+        if (isset($column->primary) and $column->primary) {
+            $modify .= ' PRIMARY KEY';
         }
 
-        if (in_array($column->type, $this->serials) && in_array($column->name, $primaryCommand->columns)) {
-            $this->primaryKeyFields[] = $column;
+        return $modify;
+    }
+
+    /**
+     * Get the SQL for an uuid column modifier.
+     *
+     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
+     * @param  \Illuminate\Support\Fluent  $column
+     * @return string|null
+     */
+    protected function modifyUuid(Blueprint $blueprint, Fluent $column)
+    {
+        
+        if ($column->type === 'uuid') {
+
+            $modify = '';
+
+            if (isset($column->gen_random_uuid) and $column->gen_random_uuid) {
+                $modify .= ' DEFAULT gen_random_uuid()';
+            }
+
+            return $modify;
+
         }
+        
     }
 }

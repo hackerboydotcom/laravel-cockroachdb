@@ -51,15 +51,4 @@ class CockroachBuilder extends PostgresBuilder
         );
     }
 
-    /**
-     * Get all of the table names for the database.
-     *
-     * @return array
-     */
-    public function getAllTables()
-    {
-        return $this->connection->select(
-            $this->grammar->compileGetAllTables($this->connection->getConfig('schema'))
-        );
-    }
 }
