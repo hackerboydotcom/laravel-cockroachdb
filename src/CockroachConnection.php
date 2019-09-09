@@ -1,15 +1,15 @@
 <?php
 
-namespace Nbj\Cockroach;
+namespace HackerBoy\LaravelCockroachDB;
 
-use Illuminate\Database\Connection;
-use Nbj\Cockroach\Builder\CockroachBuilder;
-use Nbj\Cockroach\Processor\CockroachProcessor;
+use Illuminate\Database\PostgresConnection;
+use HackerBoy\LaravelCockroachDB\Builder\CockroachBuilder;
+use HackerBoy\LaravelCockroachDB\Processor\CockroachProcessor;
 use Doctrine\DBAL\Driver\PDOPgSql\Driver as DoctrineDriver;
-use Nbj\Cockroach\Grammar\Query\CockroachGrammar as QueryGrammar;
-use Nbj\Cockroach\Grammar\Schema\CockroachGrammar as SchemaGrammar;
+use HackerBoy\LaravelCockroachDB\Grammar\Query\CockroachGrammar as QueryGrammar;
+use HackerBoy\LaravelCockroachDB\Grammar\Schema\CockroachGrammar as SchemaGrammar;
 
-class CockroachConnection extends Connection
+class CockroachConnection extends PostgresConnection
 {
     /**
      * Get the default query grammar instance.
@@ -35,11 +35,11 @@ class CockroachConnection extends Connection
         return new CockroachBuilder($this);
     }
 
-    /**
+    /*
      * Get the default schema grammar instance.
      *
      * @return \App\Cockroach\Schema\CockroachGrammar
-     */
+    */
     protected function getDefaultSchemaGrammar()
     {
         return $this->withTablePrefix(new SchemaGrammar);

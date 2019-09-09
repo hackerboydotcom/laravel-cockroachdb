@@ -1,13 +1,13 @@
 <?php
 
-namespace Nbj\Cockroach\Grammar\Query;
+namespace HackerBoy\LaravelCockroachDB\Grammar\Query;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\Grammars\Grammar;
+use Illuminate\Database\Query\Grammars\PostgresGrammar;
 
-class CockroachGrammar extends Grammar
+class CockroachGrammar extends PostgresGrammar
 {
     /**
      * All of the available clause operators.
@@ -109,7 +109,7 @@ class CockroachGrammar extends Grammar
         // Each one of the columns in the update statements needs to be wrapped in the
         // keyword identifiers, also a place-holder needs to be created for each of
         // the values in the list of bindings so we can make the sets statements.
-        $columns = $this->compileUpdateColumns($values);
+        $columns = $this->compileUpdateColumns($query, $values);
 
         $from = $this->compileUpdateFrom($query);
 
@@ -124,7 +124,7 @@ class CockroachGrammar extends Grammar
      * @param  array   $values
      * @return string
      */
-    protected function compileUpdateColumns($values)
+    protected function compileUpdateColumns(Builder $query, array $values)
     {
         // When gathering the columns for an update statement, we'll wrap each of the
         // columns and convert it to a parameter value. Then we will concatenate a

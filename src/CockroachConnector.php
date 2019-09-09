@@ -1,12 +1,12 @@
 <?php
 
-namespace Nbj\Cockroach;
+namespace HackerBoy\LaravelCockroachDB;
 
 use PDO;
-use Illuminate\Database\Connectors\Connector;
+use Illuminate\Database\Connectors\PostgresConnector;
 use Illuminate\Database\Connectors\ConnectorInterface;
 
-class CockroachConnector extends Connector implements ConnectorInterface
+class CockroachConnector extends PostgresConnector implements ConnectorInterface
 {
     /**
      * The default PDO connection options.

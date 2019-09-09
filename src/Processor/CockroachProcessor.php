@@ -1,11 +1,11 @@
 <?php
 
-namespace Nbj\Cockroach\Processor;
+namespace HackerBoy\LaravelCockroachDB\Processor;
 
 use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\Processors\Processor;
+use Illuminate\Database\Query\Processors\PostgresProcessor;
 
-class CockroachProcessor extends Processor
+class CockroachProcessor extends PostgresProcessor
 {
     /**
      * Process an "insert get ID" query.

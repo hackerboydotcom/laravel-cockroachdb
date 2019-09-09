@@ -1,12 +1,12 @@
 <?php
 
-namespace Nbj\Cockroach\Grammar\Schema;
+namespace HackerBoy\LaravelCockroachDB\Grammar\Schema;
 
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\Grammars\Grammar;
+use Illuminate\Database\Schema\Grammars\PostgresGrammar;
 
-class CockroachGrammar extends Grammar
+class CockroachGrammar extends PostgresGrammar
 {
     /**
      * If this Grammar supports schema changes wrapped in a transaction.
@@ -76,26 +76,9 @@ class CockroachGrammar extends Grammar
      * @param  string  $table
      * @return string
      */
-    public function compileColumnListing($table)
+    public function compileColumnListing()
     {
-        return "select column_name from information_schema.columns where table_name = '$table'";
-    }
-
-    /**
-     * Compile a create table command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @return string
-     */
-    public function compileCreate(Blueprint $blueprint, Fluent $command)
-    {
-        return sprintf('%s table %s (%s%s)',
-            $blueprint->temporary ? 'create temporary' : 'create',
-            $this->wrapTable($blueprint),
-            implode(', ', $this->getColumns($blueprint)),
-            $this->getPrimaryKeyFields()
-        );
+        return 'select column_name from information_schema.columns where table_schema = ? and table_name = ?';
     }
 
     /**
@@ -122,9 +105,9 @@ class CockroachGrammar extends Grammar
      */
     public function compilePrimary(Blueprint $blueprint, Fluent $command)
     {
-        //$columns = $this->columnize($command->columns);
+        $columns = $this->columnize($command->columns);
 
-        //return 'alter table '.$this->wrapTable($blueprint)." add primary key ({$columns})";
+        return 'alter table '.$this->wrapTable($blueprint)." add primary key ({$columns})";
     }
 
     /**
@@ -331,7 +314,7 @@ class CockroachGrammar extends Grammar
         return "varchar({$column->length})";
     }
 
-    /**
+    /*
      * Create the column definition for a text type.
      *
      * @param  \Illuminate\Support\Fluent  $column

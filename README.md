@@ -1,4 +1,4 @@
-# cockroachdb-laravel
+# laravel-cockroachdb
 CockroachDB database driver for Laravel 5
 
 ## Usage
@@ -6,7 +6,7 @@ CockroachDB database driver for Laravel 5
 ### Step 1: Install Through Composer
 
 ```
-composer require nbj/cockroachdb-laravel
+composer require hackerboy/laravel-cockroachdb
 ```
 
 ### Step 2: Add the Service Provider (This happens automatically in Laravel 5.5) 
@@ -14,7 +14,7 @@ composer require nbj/cockroachdb-laravel
 Open `config/app.php` and, to your "providers" array, add:
 
 ```php
-Nbj\Cockroach\CockroachServiceProvider::class
+HackerBoy\LaravelCockroachDB\CockroachServiceProvider::class
 ```
 
 ### Step 3: Add Database Driver Configuration 
@@ -82,8 +82,8 @@ To set up a database connection you need to create a new `Capsule` and register 
 <?php
 
 use Illuminate\Database\Connection;
-use Nbj\Cockroach\CockroachConnector;
-use Nbj\Cockroach\CockroachConnection;
+use HackerBoy\LaravelCockroachDB\CockroachConnector;
+use HackerBoy\LaravelCockroachDB\CockroachConnection;
 use Illuminate\Database\Capsule\Manager as DB;
 
 require 'vendor/autoload.php';

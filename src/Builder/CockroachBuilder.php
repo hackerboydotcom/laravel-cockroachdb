@@ -1,10 +1,10 @@
 <?php
 
-namespace Nbj\Cockroach\Builder;
+namespace HackerBoy\LaravelCockroachDB\Builder;
 
-use Illuminate\Database\Schema\Builder;
+use Illuminate\Database\Schema\PostgresBuilder;
 
-class CockroachBuilder extends Builder
+class CockroachBuilder extends PostgresBuilder
 {
     /**
      * Determine if the given table exists.
@@ -56,7 +56,7 @@ class CockroachBuilder extends Builder
      *
      * @return array
      */
-    protected function getAllTables()
+    public function getAllTables()
     {
         return $this->connection->select(
             $this->grammar->compileGetAllTables($this->connection->getConfig('schema'))
