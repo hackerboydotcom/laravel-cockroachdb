@@ -31,7 +31,7 @@ Open `config/datbase.php` and, to your "connections" array, add:
     'password' => env('DB_PASSWORD', ''),
     'charset' => 'utf8',
     'prefix' => '',
-    'schema' => 'DATABASE-NAME',
+    'schema' => 'public',
     'sslmode' => 'prefer',
     
     // Only set these keys if you want to run en secure mode
@@ -88,7 +88,7 @@ called `illuminate/database` Simply require this package into your project, and
 you are ready to go.
 ```
 composer require illuminate/database
-composer require nbj/cockroachdb-laravel
+composer require hackerboylaravel-cockroachdb
 ```
 
 To set up a database connection you need to create a new `Capsule` and register it.
@@ -129,6 +129,7 @@ $db->bootEloquent();
 ```
 
 By this point you are able to use the globally registered DatabaseManager like this:
+
 ```php
 <?php
 
@@ -139,4 +140,3 @@ require 'vendor/autoload.php';
 // Fetch all users from the users table
 $users = DB::table('users')->get();
 ```
-
